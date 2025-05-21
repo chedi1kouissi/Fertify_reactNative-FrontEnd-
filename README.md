@@ -1,79 +1,134 @@
-# Fertify - Agriculture Assistant App
+🌾 Fertify – AI-Powered Agriculture Assistant
+Fertify is a smart agriculture mobile application that leverages AI to assist farmers and growers with two core services:
 
-A mobile application for fertilizer recommendation and plant disease detection powered by AI.
+Fertilizer Optimization
+Get intelligent fertilizer recommendations based on soil parameters and crop type—plus actionable guidance on how to apply fertilizer efficiently for better yield and cost savings.
 
-## Features
+Plant Disease Diagnosis
+Diagnose plant diseases from a simple leaf photo and receive treatment advice along with proper remedy usage instructions.
 
-- **Fertilizer Recommendation**: Get personalized fertilizer recommendations based on soil parameters and crop type
-- **Plant Disease Detection**: Identify plant diseases from leaf images and get treatment suggestions
+📱 Designed for field-ready mobile devices:
+This system is intended to work as part of a broader smart farming ecosystem. It helps individual growers make informed decisions while providing agritech companies, agricultural cooperatives, or public institutions with scalable support tools. Future versions will integrate advanced crop scoring and growth tracking features.
 
-## Prerequisites
+🚀 Features
+✅ AI-powered fertilizer recommendations tailored to soil and crop data
 
-- Node.js (v14 or higher)
-- npm or yarn
-- Expo CLI (`npm install -g expo-cli`)
-- Python 3.8+ (for backend services)
-- Flask (`pip install flask flask-cors flask-session google-generativeai PyPDF2 pandas`)
+✅ Real-time plant disease detection using image analysis
 
-## Getting Started
+✅ Step-by-step remedy instructions and best usage practices
 
-### 1. Start the Backend Services
+✅ Built with React Native and Flask for cross-platform performance
 
-First, start the Flask backend services that power the AI recommendations:
+✅ Modular backend for easy extension (e.g., pest detection, yield prediction)
 
-```bash
-# Navigate to the greenAI directory
+📦 Prerequisites
+Frontend
+
+Node.js (v14 or higher)
+
+npm or yarn
+
+Expo CLI (npm install -g expo-cli)
+
+Backend
+
+Python 3.8+
+
+Flask + dependencies:
+
+bash
+Copier
+Modifier
+pip install flask flask-cors flask-session google-generativeai PyPDF2 pandas
+🧪 Getting Started
+1. Start Backend Services
+The backend contains two AI-powered services:
+
+Fertilizer Service (Port 5001)
+
+Disease Detection Service (Port 5002)
+
+Run them as follows:
+
+bash
+Copier
+Modifier
+# Navigate to the backend folder
 cd greenAI
 
-# Windows
+# For Windows
 start_services.bat
 
-# Unix/Linux/Mac
+# For macOS/Linux
 chmod +x start_services.sh
 ./start_services.sh
-```
+Check service status:
 
-Verify the services are running by accessing:
-- Fertilizer service: http://localhost:5001/health
-- Disease detection service: http://localhost:5002/health
+http://localhost:5001/health
 
-### 2. Start the React Native App
+http://localhost:5002/health
 
-```bash
-# Navigate to the Fertify_react directory
+2. Launch the React Native App
+bash
+Copier
+Modifier
+# Navigate to the frontend folder
 cd Fertify_react
 
 # Install dependencies
 npm install
 
-# Start the Expo development server
+# Start Expo development server
 npm start
-```
+Choose how to run the app:
 
-This will open a development menu in your browser. You can run the app on:
-- Android device/emulator: Press `a` in the terminal or click "Run on Android" in the browser
-- iOS device/simulator: Press `i` in the terminal or click "Run on iOS simulator" (Mac only)
-- Web browser: Press `w` in the terminal or click "Run in web browser"
+📱 Android device/emulator: Press a
 
-### 3. Configure API Connection
+🍏 iOS device/simulator (macOS only): Press i
 
-When the app starts, use the API Config button in the top-right corner to set your computer's IP address. This is required so the mobile app can connect to the backend services.
+🌐 Web browser: Press w
 
-1. Click the API Config button
-2. Enter your computer's IP address (e.g., 172.20.10.4)
-3. Press "Test Connection" to verify connectivity
-4. If the connections succeed, press "Save"
+3. API Configuration (First Launch)
+On app launch:
 
-## Troubleshooting
+Tap the ⚙️ API Config button (top-right corner)
 
-If you encounter any issues with the API connections:
+Enter your machine's IP address
 
-1. Ensure both backend services are running (check the health endpoints mentioned above)
-2. Verify you're using the correct IP address in the API Config screen
-3. Make sure your mobile device and computer are on the same network
-4. Check that no firewall is blocking the connections to ports 5001 and 5002
-5. Try restarting the backend services using the start_services script
+Tap "Test Connection"
 
-## License
+If successful, tap "Save"
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+💡 Ensure your mobile device and computer are on the same Wi-Fi network.
+
+🛠 Troubleshooting
+Confirm both backend services are up via /health endpoints
+
+Double-check your local IP address is correct
+
+Make sure devices are on the same LAN
+
+Temporarily disable firewalls blocking ports 5001 or 5002
+
+Restart services using start_services script
+
+🔮 Future Enhancements
+Intelligent crop scoring models
+
+Pest detection via image and symptom inputs
+
+Growth tracking with temporal data modeling
+
+Offline diagnosis mode with pre-trained models
+
+Integration with agricultural IoT sensors and platforms
+
+📄 License
+MIT Licensed. See the LICENSE file for details.
+
+🙏 Acknowledgments
+Built with React Native, Flask, and Google Generative AI
+
+Disease diagnosis supported by machine learning and plant pathology datasets
+
+Inspired by precision agriculture and sustainable farming principles
