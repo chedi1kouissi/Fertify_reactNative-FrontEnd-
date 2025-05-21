@@ -1,0 +1,19 @@
+{ 
+  "expo": { 
+    "name": "Fertify", 
+    "slug": "Fertify_react", 
+    "version": "1.0.0", 
+    "sdkVersion": "53.0.0", 
+    "platforms": ["ios"], 
+    "orientation": "portrait", 
+    "icon": "./assets/icon.png", 
+    "jsEngine": "hermes", 
+    "assetBundlePatterns": ["**/*"], 
+    "ios": { 
+      "supportsTablet": true, 
+      "bundleIdentifier": "com.fertify.app" 
+    }, 
+    "plugins": ["expo-dev-client"], 
+    "owner": "fertify" 
+  } 
+} 

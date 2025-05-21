@@ -1,0 +1,26 @@
+# Fertify Logo Concept
+
+## Design Elements
+- **Primary Symbol**: A stylized leaf with embedded circuit lines/patterns
+- **Colors**: 
+  - Primary: #2E7D32 (Forest Green)
+  - Secondary: #1976D2 (Tech Blue)
+  - Accents: #81C784 (Light Green)
+- **Typography**: Clean, modern sans-serif font ("Montserrat" or similar)
+- **Style**: Minimalist, flat design with subtle depth effects
+
+## Symbolism
+- The leaf represents agriculture, farming, and growth
+- Circuit patterns represent AI and technology integration
+- The combination symbolizes how Fertify uses AI to enhance agriculture
+
+## Variations
+1. **App Icon**: Square format with rounded corners, primarily green with blue circuit elements
+2. **Full Logo**: Horizontal format with icon + "Fertify" text
+3. **Splash Screen**: Centered icon with tagline "AI-Powered Agriculture"
+
+## Technical Specifications
+- Icon size: 1024x1024px for app stores
+- Format: PNG with transparency
+- Style follows modern mobile design principles with flat, clean aesthetic
+- Adaptable for dark/light modes 

@@ -1,0 +1,52 @@
+# Fertify Logo Implementation Guide
+
+## Files to Create
+1. **icon.png** (1024x1024px) - Main app icon for App Store/Google Play
+2. **adaptive-icon.png** (1024x1024px) - Foreground image for Android adaptive icons
+3. **splash-icon.png** (1200x1200px) - Centered logo for splash screen
+4. **favicon.png** (192x192px) - Web favicon
+5. **fertify-full-logo.png** (1500x500px) - Horizontal logo with text for website/marketing
+
+## Design Instructions
+
+### App Icon (icon.png)
+- Create a square icon with a subtle rounded rectangle shape
+- Background: Gradient from #2E7D32 (forest green) to #1E8C3B (slightly brighter green)
+- Center element: Stylized leaf with embedded circuit-like patterns in lighter green (#81C784) and tech blue (#1976D2)
+- Keep the design clean and recognizable at small sizes
+- Ensure contrast between foreground and background elements
+- No text should be included in the app icon
+
+### Android Adaptive Icon (adaptive-icon.png)
+- Design a version of the icon that works within the Android adaptive icon system
+- Foreground image should be the leaf with circuits on transparent background
+- Allow for safe area as Android will apply masking and effects
+
+### Splash Screen (splash-icon.png)
+- Create a larger version of the main icon to be displayed during app loading
+- Add "AI-Powered Agriculture" as a tagline below in a light, modern font
+- Background should be white (#FFFFFF) for clean appearance
+
+### Web Favicon (favicon.png)
+- Simplified version of the app icon optimized for very small display
+- Focus on the most recognizable elements that work at 16x16, 32x32, and 192x192 pixels
+
+### Full Logo (fertify-full-logo.png)
+- Horizontal layout with icon on left
+- "Fertify" text in Montserrat Bold or similar modern sans-serif font
+- Optional tagline "AI-Powered Agriculture" in lighter weight below main text
+- Color scheme should match the app icon
+
+## Technical Guidelines
+- All files should be provided in PNG format with transparency
+- Include vector versions (SVG/AI) for print and scalable usage
+- Optimize all PNG files for web and mobile use
+- Follow platform-specific guidelines for Android and iOS
+- Provide both light and dark mode versions for versatility
+
+## Usage Rules
+- Maintain spacing around logo (minimum clear space equal to height of "F" in Fertify)
+- Do not stretch, distort, or recolor the logo outside approved color variations
+- Do not add effects like shadows or glows unless specified
+- When using on colored backgrounds, ensure sufficient contrast
+- For small applications, use the icon-only version 
