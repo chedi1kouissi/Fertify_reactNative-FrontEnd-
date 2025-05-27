@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 // Configuration for different environments
 const ENV = {
   dev: {
-    apiUrl: 'http://172.20.10.4', // Updated with your computer's IP address from ipconfig
+    apiUrl: 'http://localhost', // Use localhost for development
     fertilizerPort: '5001',
     diseasePort: '5002',
     fertilizerPath: '/api/predict_fertilizer',
@@ -25,7 +25,40 @@ const getEnvironment = () => {
   return ENV.prod;
 };
 
+// Try to detect if we're running on a physical device or web
+const isRunningOnPhysicalDevice = () => {
+  try {
+    // Check if we're running on web
+    if (typeof window !== 'undefined' && window.location && window.location.hostname) {
+      return false; // We're on web
+    }
+    return true; // Likely on a physical device
+  } catch (e) {
+    console.log('Error detecting platform:', e);
+    return false; // Default to false
+  }
+};
+
 const environment = getEnvironment();
+
+// Set default API URL based on platform
+if (__DEV__ && !environment.apiUrlSet) {
+  // For physical devices, try to use a more accessible address
+  if (isRunningOnPhysicalDevice()) {
+    // Try common local network IPs that might work on physical devices
+    // The app will try these in order until one works
+    environment.alternativeIPs = [
+      'http://localhost', // For web browser testing
+      'http://10.0.2.2', // For Android emulator
+      'http://127.0.0.1', // Localhost alternative
+      'http://172.20.10.4', // Common IP when using mobile hotspot
+      'http://192.168.1.2', // Common home network IP
+      'http://192.168.0.2', // Another common home network IP
+      'http://192.168.1.100', // Another common home network IP
+    ];
+  }
+  environment.apiUrlSet = true;
+}
 
 // Create API service
 const Api = {
@@ -197,6 +230,10 @@ const Api = {
   
   // Predict disease using base64 encoded image
   predictDiseaseWithBase64: async (base64Image) => {
+    // Store the original error to throw if all attempts fail
+    let originalError = null;
+    
+    // First try with the configured API URL
     try {
       const url = `${environment.apiUrl}:${environment.diseasePort}/api/predict_disease_base64`;
       console.log('Sending base64 disease prediction request to:', url);
@@ -216,10 +253,48 @@ const Api = {
       console.log('Disease response from base64 endpoint:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error predicting disease with base64:', error.message);
-      console.error('Error details:', error.response?.data || 'No response data');
-      // Re-throw with more details
-      throw error;
+      console.error('Error with primary URL:', error.message);
+      originalError = error;
+      
+      // If we have alternative IPs and this is a network error, try them
+      if (environment.alternativeIPs && error.message.includes('Network Error')) {
+        console.log('Trying alternative IP addresses...');
+        
+        // Try each alternative IP
+        for (const altIP of environment.alternativeIPs) {
+          try {
+            console.log(`Trying alternative IP: ${altIP}`);
+            const altUrl = `${altIP}:${environment.diseasePort}/api/predict_disease_base64`;
+            
+            const response = await axios.post(
+              altUrl,
+              { image_base64: base64Image },
+              {
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Accept': 'application/json'
+                },
+                timeout: 60000
+              }
+            );
+            
+            console.log(`Success with alternative IP ${altIP}!`);
+            // If successful, update the main API URL for future requests
+            environment.apiUrl = altIP;
+            console.log(`Updated primary API URL to: ${altIP}`);
+            
+            return response.data;
+          } catch (altError) {
+            console.log(`Failed with alternative IP ${altIP}: ${altError.message}`);
+            // Continue to the next alternative IP
+          }
+        }
+      }
+      
+      // If we reach here, all attempts failed
+      console.error('All connection attempts failed for disease prediction');
+      console.error('Original error details:', originalError.response?.data || 'No response data');
+      throw originalError;
     }
   }
 };

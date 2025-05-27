@@ -1,0 +1,58 @@
+MANUAL STEPS TO FIX EXPO QR CODE ISSUE
+======================================================
+
+Follow these steps in order:
+
+1. Close all terminal windows and stop any running Expo processes
+
+2. Open a Command Prompt (cmd.exe, not PowerShell) and run:
+   cd C:\Users\ASUS\OneDrive\Bureau\Fertify_s2\Fertify_react
+
+3. Uninstall expo-dev-client:
+   npm uninstall expo-dev-client
+
+4. Clear the Expo cache:
+   rmdir /s /q .expo
+   rmdir /s /q node_modules\.cache
+
+5. Modify app.json to use this simplified version:
+   {
+     "expo": {
+       "name": "Fertify",
+       "slug": "fertify",
+       "version": "1.0.0",
+       "orientation": "portrait",
+       "icon": "./assets/icon.png",
+       "splash": {
+         "image": "./assets/splash-icon.png",
+         "resizeMode": "contain",
+         "backgroundColor": "#ffffff"
+       },
+       "assetBundlePatterns": ["**/*"],
+       "ios": {
+         "supportsTablet": true
+       },
+       "android": {
+         "adaptiveIcon": {
+           "foregroundImage": "./assets/adaptive-icon.png",
+           "backgroundColor": "#ffffff"
+         }
+       }
+     }
+   }
+
+6. Start Expo with tunnel option:
+   npx expo start --tunnel
+
+7. Scan the QR code with your iPhone camera app (not Expo Go)
+
+8. If you still get "no usable data found", try these additional steps:
+   - Install the Expo Go app from the App Store if not already installed
+   - Make sure your iPhone and computer are on the same Wi-Fi network
+   - Try manually entering the exp:// URL shown in the terminal into Expo Go
+   - Try restarting your iPhone
+
+9. After testing is complete, you can reinstall expo-dev-client if needed:
+   npm install expo-dev-client
+
+======================================================

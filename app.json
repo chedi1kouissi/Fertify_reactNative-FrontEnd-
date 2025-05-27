@@ -1,38 +1,25 @@
 {
-  "expo": {
-    "name": "Fertify",
-    "slug": "Fertify_react",
-    "version": "1.0.0",
-    "platforms": ["ios", "android", "web"],
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#E8F5E9"
-    },
-    "assetBundlePatterns": ["**/*"],
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.fertify.app"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#E8F5E9"
-      },
-      "edgeToEdgeEnabled": true,
-      "package": "com.fertify.app"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id"
-      }
-    }
-  }
-}
+     "expo": {
+       "name": "Fertify",
+       "slug": "fertify",
+       "version": "1.0.0",
+       "orientation": "portrait",
+       "icon": "./assets/icon.png",
+       "splash": {
+         "image": "./assets/splash-icon.png",
+         "resizeMode": "contain",
+         "backgroundColor": "#ffffff"
+       },
+       "assetBundlePatterns": ["**/*"],
+       "ios": {
+         "supportsTablet": true
+       },
+       "android": {
+         "adaptiveIcon": {
+           "foregroundImage": "./assets/adaptive-icon.png",
+           "backgroundColor": "#ffffff"
+         }
+       }
+     }
+   }
+

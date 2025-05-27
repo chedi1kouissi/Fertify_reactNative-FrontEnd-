@@ -17,9 +17,18 @@ import {
   IconButton
 } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+// Removed DropDown import as we're using Menu instead
 import Api from '../services/api';
 
-const FertilizerScreen = ({ navigation }) => {
+// Define types for navigation prop
+interface FertilizerScreenProps {
+  navigation: {
+    navigate: (screen: string, params?: any) => void;
+    goBack: () => void;
+  };
+}
+
+const FertilizerScreen = ({ navigation }: FertilizerScreenProps) => {
   const theme = useTheme();
   
   // Form state
@@ -39,34 +48,126 @@ const FertilizerScreen = ({ navigation }) => {
   
   // API state
   const [loading, setLoading] = useState(false);
-  const [recommendation, setRecommendation] = useState(null);
+  interface Recommendation {
+    fertilizer: string;
+    description?: string;
+    [key: string]: any; // For any other properties
+  }
+  const [recommendation, setRecommendation] = useState<Recommendation | null>(null);
   const [error, setError] = useState('');
 
   // Soil and crop type options
   const soilTypes = ['Sandy', 'Loamy', 'Clay', 'Silt'];
   const cropTypes = ['Rice', 'Wheat', 'Corn', 'Cotton'];
 
-  // Form validation
-  const validateNumber = (value) => {
+  // Form validation with realistic agricultural limits
+  const validateNumber = (value: string): boolean => {
     return value.trim() !== '' && !isNaN(Number(value));
   };
 
-  const isFormValid = () => {
-    return validateNumber(ph) && 
-           validateNumber(nitrogen) && 
-           validateNumber(phosphorus) && 
-           validateNumber(potassium) && 
-           validateNumber(temperature) && 
-           validateNumber(humidity) && 
-           validateNumber(moisture) && 
-           soilType !== '' && 
-           cropType !== '';
+  // Validation rules for each field with realistic agricultural limits
+  const validationRules = {
+    ph: {
+      min: 0,
+      max: 14,
+      errorMessage: 'pH must be between 0 and 14'
+    },
+    nitrogen: {
+      min: 0,
+      max: 200,
+      errorMessage: 'Nitrogen must be between 0 and 200 mg/kg'
+    },
+    phosphorus: {
+      min: 0,
+      max: 200,
+      errorMessage: 'Phosphorus must be between 0 and 200 mg/kg'
+    },
+    potassium: {
+      min: 0,
+      max: 200,
+      errorMessage: 'Potassium must be between 0 and 200 mg/kg'
+    },
+    temperature: {
+      min: 0,
+      max: 60,
+      errorMessage: 'Temperature must be between 0 and 60°C'
+    },
+    humidity: {
+      min: 0,
+      max: 100,
+      errorMessage: 'Humidity must be between 0 and 100%'
+    },
+    moisture: {
+      min: 0,
+      max: 100,
+      errorMessage: 'Moisture must be between 0 and 100%'
+    }
+  };
+
+  // Validate if a value is within the specified range
+  type FieldName = 'ph' | 'nitrogen' | 'phosphorus' | 'potassium' | 'temperature' | 'humidity' | 'moisture';
+  
+  const isInRange = (value: string, fieldName: FieldName): boolean => {
+    if (!validateNumber(value) || value.trim() === '') return true; // Skip empty fields
+    const numValue = parseFloat(value);
+    const { min, max } = validationRules[fieldName];
+    return numValue >= min && numValue <= max;
+  };
+
+  // Get error message for a field
+  const getErrorMessage = (value: string, fieldName: FieldName): string => {
+    if (!validateNumber(value) && value.trim() !== '') {
+      return `${fieldName.charAt(0).toUpperCase() + fieldName.slice(1)} must be a number`;
+    }
+    if (!isInRange(value, fieldName) && value.trim() !== '') {
+      return validationRules[fieldName].errorMessage;
+    }
+    return '';
+  };
+
+  const validateForm = () => {
+    // Check if all required fields are filled
+    if (!ph || !nitrogen || !phosphorus || !potassium || 
+        !temperature || !humidity || !moisture) {
+      setError('Please fill in all required fields');
+      return false;
+    }
+    
+    // Check if soil type and crop type are selected
+    if (!soilType) {
+      setError('Please select a soil type');
+      return false;
+    }
+    
+    if (!cropType) {
+      setError('Please select a crop type');
+      return false;
+    }
+    
+    // Check if all values are valid numbers
+    if (!validateNumber(ph) || !validateNumber(nitrogen) || 
+        !validateNumber(phosphorus) || !validateNumber(potassium) || 
+        !validateNumber(temperature) || !validateNumber(humidity) || 
+        !validateNumber(moisture)) {
+      setError('Please enter valid numbers for all fields');
+      return false;
+    }
+    
+    // Check if all values are within valid ranges
+    if (!isInRange(ph, 'ph') || !isInRange(nitrogen, 'nitrogen') || 
+        !isInRange(phosphorus, 'phosphorus') || !isInRange(potassium, 'potassium') || 
+        !isInRange(temperature, 'temperature') || !isInRange(humidity, 'humidity') || 
+        !isInRange(moisture, 'moisture')) {
+      setError('Please ensure all values are within the valid ranges');
+      return false;
+    }
+    
+    return true;
   };
 
   // Handle form submission
   const getRecommendation = async () => {
-    if (!isFormValid()) {
-      setError('Please fill all fields with valid values');
+    if (!validateForm()) {
       return;
     }
 
@@ -89,34 +190,47 @@ const FertilizerScreen = ({ navigation }) => {
       console.log('Sending fertilizer request:', requestData);
       
       // Use the API service for prediction
-      const result = await Api.predictFertilizer(requestData);
+      const result = await Api.predictFertilizer(requestData) as Recommendation;
       
       if (result && result.fertilizer) {
-      setRecommendation(result);
+        setRecommendation(result);
         // Optionally navigate to details screen
         // navigation.navigate('Details', { type: 'fertilizer', data: result });
       } else {
         setError('Received invalid response from server. Please try again.');
       }
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error getting fertilizer recommendation:', error);
       
+      // Define an interface for API errors
+      interface ApiError {
+        message?: string;
+        response?: {
+          status: number;
+          data: {
+            error?: string;
+          };
+        };
+      }
+      
       // Check if it's a network error
-      if (error.message && error.message.includes('Network Error')) {
+      const apiError = error as ApiError;
+      if (apiError.message && apiError.message.includes('Network Error')) {
         setError('Cannot connect to fertilizer service. Please check your network connection and ensure the server is running.');
-      } else if (error.response) {
+      } else if (apiError.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        setError(`Server error: ${error.response.status} - ${error.response.data.error || 'Unknown error'}`);
+        setError(`Server error: ${apiError.response.status} - ${apiError.response.data.error || 'Unknown error'}`);
       } else {
-      setError('Failed to get recommendation. Please try again.');
+        setError('Failed to get recommendation. Please try again.');
       }
       
       // Show more detailed error for debugging
+      console.log('Error details:', error instanceof Error ? error.message : String(error));
       if (__DEV__) {
         Alert.alert(
           'API Error',
-          `Failed to connect to API server: ${error.message}\n\nCheck your network connection and server status.\n\nURL: ${Api.getFertilizerUrl()}`
+          `Failed to connect to API server: ${error instanceof Error ? error.message : String(error)}\n\nCheck your network connection and server status.\n\nURL: ${Api.getFertilizerUrl()}`
         );
       }
     } finally {
@@ -167,35 +281,35 @@ const FertilizerScreen = ({ navigation }) => {
             <View style={styles.inputRow}>
               <View style={styles.inputColumn}>
                 <TextInput
-                  label="pH"
+                  label="pH (0-14)"
                   value={ph}
                   onChangeText={setPh}
                   keyboardType="numeric"
                   mode="outlined"
                   style={styles.input}
-                  error={ph !== '' && !validateNumber(ph)}
-                  left={<TextInput.Icon name="water" color={theme.colors.primary} />}
+                  error={ph !== '' && (!validateNumber(ph) || !isInRange(ph, 'ph'))}
+                  left={<TextInput.Icon icon="flask" color={theme.colors.primary} />}
                   theme={{ colors: { primary: theme.colors.primary }}}
                 />
-                <HelperText type="error" visible={ph !== '' && !validateNumber(ph)}>
-                  pH must be a number
+                <HelperText type="error" visible={ph !== '' && (!validateNumber(ph) || !isInRange(ph, 'ph'))}>
+                  {getErrorMessage(ph, 'ph')}
                 </HelperText>
               </View>
               
               <View style={styles.inputColumn}>
                 <TextInput
-                  label="Temperature"
+                  label="Temperature (0-60°C)"
                   value={temperature}
                   onChangeText={setTemperature}
                   keyboardType="numeric"
                   mode="outlined"
                   style={styles.input}
-                  error={temperature !== '' && !validateNumber(temperature)}
-                  left={<TextInput.Icon name="thermometer" color={theme.colors.primary} />}
+                  error={temperature !== '' && (!validateNumber(temperature) || !isInRange(temperature, 'temperature'))}
+                  left={<TextInput.Icon icon="thermometer" color={theme.colors.primary} />}
                   theme={{ colors: { primary: theme.colors.primary }}}
                 />
-                <HelperText type="error" visible={temperature !== '' && !validateNumber(temperature)}>
-                  Temperature must be a number
+                <HelperText type="error" visible={temperature !== '' && (!validateNumber(temperature) || !isInRange(temperature, 'temperature'))}>
+                  {getErrorMessage(temperature, 'temperature')}
                 </HelperText>
               </View>
             </View>
@@ -203,35 +317,35 @@ const FertilizerScreen = ({ navigation }) => {
             <View style={styles.inputRow}>
               <View style={styles.inputColumn}>
                 <TextInput
-                  label="Humidity (%)"
+                  label="Humidity (0-100%)"
                   value={humidity}
                   onChangeText={setHumidity}
                   keyboardType="numeric"
                   mode="outlined"
                   style={styles.input}
-                  error={humidity !== '' && !validateNumber(humidity)}
-                  left={<TextInput.Icon name="water-percent" color={theme.colors.primary} />}
+                  error={humidity !== '' && (!validateNumber(humidity) || !isInRange(humidity, 'humidity'))}
+                  left={<TextInput.Icon icon="water-percent" color={theme.colors.primary} />}
                   theme={{ colors: { primary: theme.colors.primary }}}
                 />
-                <HelperText type="error" visible={humidity !== '' && !validateNumber(humidity)}>
-                  Humidity must be a number
+                <HelperText type="error" visible={humidity !== '' && (!validateNumber(humidity) || !isInRange(humidity, 'humidity'))}>
+                  {getErrorMessage(humidity, 'humidity')}
                 </HelperText>
               </View>
               
               <View style={styles.inputColumn}>
                 <TextInput
-                  label="Moisture (%)"
+                  label="Moisture (0-100%)"
                   value={moisture}
                   onChangeText={setMoisture}
                   keyboardType="numeric"
                   mode="outlined"
                   style={styles.input}
-                  error={moisture !== '' && !validateNumber(moisture)}
-                  left={<TextInput.Icon name="water-outline" color={theme.colors.primary} />}
+                  error={moisture !== '' && (!validateNumber(moisture) || !isInRange(moisture, 'moisture'))}
+                  left={<TextInput.Icon icon="water-outline" color={theme.colors.primary} />}
                   theme={{ colors: { primary: theme.colors.primary }}}
                 />
-                <HelperText type="error" visible={moisture !== '' && !validateNumber(moisture)}>
-                  Moisture must be a number
+                <HelperText type="error" visible={moisture !== '' && (!validateNumber(moisture) || !isInRange(moisture, 'moisture'))}>
+                  {getErrorMessage(moisture, 'moisture')}
                 </HelperText>
               </View>
             </View>
@@ -242,35 +356,35 @@ const FertilizerScreen = ({ navigation }) => {
             <View style={styles.inputRow}>
               <View style={styles.inputColumn}>
                 <TextInput
-                  label="Nitrogen (N)"
+                  label="Nitrogen (N) (0-200 mg/kg)"
                   value={nitrogen}
                   onChangeText={setNitrogen}
                   keyboardType="numeric"
                   mode="outlined"
                   style={styles.input}
-                  error={nitrogen !== '' && !validateNumber(nitrogen)}
-                  left={<TextInput.Icon name="alpha-n-circle" color={theme.colors.primary} />}
+                  error={nitrogen !== '' && (!validateNumber(nitrogen) || !isInRange(nitrogen, 'nitrogen'))}
+                  left={<TextInput.Icon icon="alpha-n-circle" color={theme.colors.primary} />}
                   theme={{ colors: { primary: theme.colors.primary }}}
                 />
-                <HelperText type="error" visible={nitrogen !== '' && !validateNumber(nitrogen)}>
-                  Nitrogen must be a number
+                <HelperText type="error" visible={nitrogen !== '' && (!validateNumber(nitrogen) || !isInRange(nitrogen, 'nitrogen'))}>
+                  {getErrorMessage(nitrogen, 'nitrogen')}
                 </HelperText>
               </View>
               
               <View style={styles.inputColumn}>
                 <TextInput
-                  label="Phosphorus (P)"
+                  label="Phosphorus (P) (0-200 mg/kg)"
                   value={phosphorus}
                   onChangeText={setPhosphorus}
                   keyboardType="numeric"
                   mode="outlined"
                   style={styles.input}
-                  error={phosphorus !== '' && !validateNumber(phosphorus)}
-                  left={<TextInput.Icon name="alpha-p-circle" color={theme.colors.primary} />}
+                  error={phosphorus !== '' && (!validateNumber(phosphorus) || !isInRange(phosphorus, 'phosphorus'))}
+                  left={<TextInput.Icon icon="alpha-p-circle" color={theme.colors.primary} />}
                   theme={{ colors: { primary: theme.colors.primary }}}
                 />
-                <HelperText type="error" visible={phosphorus !== '' && !validateNumber(phosphorus)}>
-                  Phosphorus must be a number
+                <HelperText type="error" visible={phosphorus !== '' && (!validateNumber(phosphorus) || !isInRange(phosphorus, 'phosphorus'))}>
+                  {getErrorMessage(phosphorus, 'phosphorus')}
                 </HelperText>
               </View>
             </View>
@@ -278,18 +392,18 @@ const FertilizerScreen = ({ navigation }) => {
             <View style={styles.inputRow}>
               <View style={styles.inputColumn}>
                 <TextInput
-                  label="Potassium (K)"
+                  label="Potassium (K) (0-200 mg/kg)"
                   value={potassium}
                   onChangeText={setPotassium}
                   keyboardType="numeric"
                   mode="outlined"
                   style={styles.input}
-                  error={potassium !== '' && !validateNumber(potassium)}
-                  left={<TextInput.Icon name="alpha-k-circle" color={theme.colors.primary} />}
+                  error={potassium !== '' && (!validateNumber(potassium) || !isInRange(potassium, 'potassium'))}
+                  left={<TextInput.Icon icon="alpha-k-circle" color={theme.colors.primary} />}
                   theme={{ colors: { primary: theme.colors.primary }}}
                 />
-                <HelperText type="error" visible={potassium !== '' && !validateNumber(potassium)}>
-                  Potassium must be a number
+                <HelperText type="error" visible={potassium !== '' && (!validateNumber(potassium) || !isInRange(potassium, 'potassium'))}>
+                  {getErrorMessage(potassium, 'potassium')}
                 </HelperText>
               </View>
             </View>
@@ -299,22 +413,21 @@ const FertilizerScreen = ({ navigation }) => {
             
             {/* Soil Type Dropdown */}
             <View style={styles.menuContainer}>
+              <Button 
+                mode="outlined" 
+                onPress={() => setSoilMenuVisible(true)}
+                style={[styles.dropdown, !soilType && error ? styles.errorInput : null]}
+                icon="soil"
+                contentStyle={styles.dropdownContent}
+                labelStyle={styles.dropdownLabel}
+                color={theme.colors.primary}
+              >
+                {soilType || "Select Soil Type *"}
+              </Button>
               <Menu
                 visible={soilMenuVisible}
                 onDismiss={() => setSoilMenuVisible(false)}
-                anchor={
-                  <Button 
-                    mode="outlined" 
-                    onPress={() => setSoilMenuVisible(true)}
-                    style={styles.dropdown}
-                    icon="soil"
-                    contentStyle={styles.dropdownContent}
-                    labelStyle={styles.dropdownLabel}
-                    color={theme.colors.primary}
-                  >
-                    {soilType || "Select Soil Type"}
-                  </Button>
-                }
+                anchor={{ x: 0, y: 0 }}
               >
                 {soilTypes.map((type) => (
                   <Menu.Item
@@ -327,26 +440,26 @@ const FertilizerScreen = ({ navigation }) => {
                   />
                 ))}
               </Menu>
+              {!soilType && error ? <HelperText type="error">Soil type is required</HelperText> : null}
             </View>
             
             {/* Crop Type Dropdown */}
             <View style={styles.menuContainer}>
+              <Button 
+                mode="outlined" 
+                onPress={() => setCropMenuVisible(true)}
+                style={[styles.dropdown, !cropType && error ? styles.errorInput : null]}
+                icon="seed"
+                contentStyle={styles.dropdownContent}
+                labelStyle={styles.dropdownLabel}
+                color={theme.colors.primary}
+              >
+                {cropType || "Select Crop Type *"}
+              </Button>
               <Menu
                 visible={cropMenuVisible}
                 onDismiss={() => setCropMenuVisible(false)}
-                anchor={
-                  <Button 
-                    mode="outlined" 
-                    onPress={() => setCropMenuVisible(true)}
-                    style={styles.dropdown}
-                    icon="seed"
-                    contentStyle={styles.dropdownContent}
-                    labelStyle={styles.dropdownLabel}
-                    color={theme.colors.primary}
-                  >
-                    {cropType || "Select Crop Type"}
-                  </Button>
-                }
+                anchor={{ x: 0, y: 0 }}
               >
                 {cropTypes.map((type) => (
                   <Menu.Item
@@ -359,6 +472,7 @@ const FertilizerScreen = ({ navigation }) => {
                   />
                 ))}
               </Menu>
+              {!cropType && error ? <HelperText type="error">Crop type is required</HelperText> : null}
             </View>
             
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
@@ -368,7 +482,12 @@ const FertilizerScreen = ({ navigation }) => {
                 mode="contained" 
                 onPress={getRecommendation}
                 loading={loading}
-                disabled={loading || !isFormValid()}
+                disabled={loading || !ph || !nitrogen || !phosphorus || !potassium || !temperature || !humidity || !moisture || !soilType || !cropType || 
+                  !validateNumber(ph) || !validateNumber(nitrogen) || !validateNumber(phosphorus) || !validateNumber(potassium) || 
+                  !validateNumber(temperature) || !validateNumber(humidity) || !validateNumber(moisture) || 
+                  !isInRange(ph, 'ph') || !isInRange(nitrogen, 'nitrogen') || !isInRange(phosphorus, 'phosphorus') || 
+                  !isInRange(potassium, 'potassium') || !isInRange(temperature, 'temperature') || 
+                  !isInRange(humidity, 'humidity') || !isInRange(moisture, 'moisture')}
                 style={styles.submitButton}
                 icon="leaf"
                 labelStyle={styles.submitButtonText}
@@ -381,7 +500,7 @@ const FertilizerScreen = ({ navigation }) => {
                 onPress={resetForm}
                 style={styles.resetButton}
                 icon="refresh"
-                color={theme.colors.text}
+                color={theme.colors.onSurface}
               >
                 Reset Form
               </Button>
@@ -391,23 +510,13 @@ const FertilizerScreen = ({ navigation }) => {
         
         {/* Recommendation Results */}
         {recommendation && (
-          <Card style={[styles.card, styles.resultCard]} elevation={3}>
+          <Card style={styles.card}>
+            <Card.Title title="Fertilizer Recommendation" />
             <Card.Content>
-              <View style={styles.resultHeader}>
-                <MaterialCommunityIcons name="check-circle" size={24} color={theme.colors.primary} />
-                <Title style={styles.resultTitle}>Fertilizer Recommendation</Title>
-              </View>
-              <Divider style={styles.divider} />
-              
-              {/* Display the recommendation data here */}
-              <Surface style={styles.resultContent}>
-                {Object.entries(recommendation).map(([key, value]) => (
-                  <View key={key} style={styles.resultItem}>
-                    <Text style={styles.resultKey}>{key.replace(/_/g, ' ')}:</Text>
-                    <Text style={styles.resultValue}>{value}</Text>
-                  </View>
-                ))}
-              </Surface>
+              <Text style={styles.resultTitle}>{recommendation.fertilizer}</Text>
+              {recommendation.description && (
+                <Text style={styles.resultContent}>{recommendation.description}</Text>
+              )}
             </Card.Content>
           </Card>
         )}
